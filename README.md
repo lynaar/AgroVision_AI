@@ -1,386 +1,282 @@
-# 🌾 CROPS — Deep Learning for Agricultural Crop Classification
+# 🌾 CROPS — Deep Learning for Crop Classification
+
+**Crop classification using multi-source satellite time series and environmental data**
+
+CROPS is an academic research project focused on agricultural crop classification using Deep Learning and Earth observation data. The project explores the use of Sentinel-2 satellite time series, environmental covariates, and a proposed neural network architecture to improve crop classification performance across different geographic regions.
 
 <p align="center">
-  <strong>Multi-Temporal Satellite Imagery · Deep Learning · Remote Sensing</strong>
-</p>
-
-<p align="center">
-  <img src="https://img.shields.io/badge/Python-3776AB?logo=python&logoColor=white" alt="Python"/>
-  <img src="https://img.shields.io/badge/PyTorch-EE4C2C?logo=pytorch&logoColor=white" alt="PyTorch"/>
-  <img src="https://img.shields.io/badge/Sentinel--2-2E8B57" alt="Sentinel-2"/>
-  <img src="https://img.shields.io/badge/Deep_Learning-Neural_Networks-7B68EE" alt="Deep Learning"/>
-  <img src="https://img.shields.io/badge/Task-Crop_Classification-orange" alt="Crop classification"/>
-</p>
-
-<p align="center">
-  <em>Reproducing MCTNet, integrating environmental covariates, and exploring an improved temporal deep learning architecture for agricultural crop mapping.</em>
+  <img src="https://img.shields.io/badge/Python-3.x-blue?logo=python" alt="Python" />
+  <img src="https://img.shields.io/badge/PyTorch-Deep%20Learning-ee4c2c?logo=pytorch" alt="PyTorch" />
+  <img src="https://img.shields.io/badge/Domain-Remote%20Sensing-green" alt="Remote Sensing" />
+  <img src="https://img.shields.io/badge/Project-Academic-purple" alt="Academic project" />
 </p>
 
 ---
 
 ## 📌 Table of Contents
 
-- [Overview](#-overview)
-- [Project Objectives](#-project-objectives)
-- [Study Areas and Dataset](#-study-areas-and-dataset)
-- [Project Methodology](#-project-methodology)
-- [Part 1 — MCTNet Reproduction](#-part-1--mctnet-reproduction)
-- [Part 2 — Environmental Covariates](#-part-2--environmental-covariates)
-- [Part 3 — Proposed Architecture](#-part-3--proposed-architecture)
+- [Project Overview](#-project-overview)
+- [Objectives](#-objectives)
+- [Study Areas and Data](#-study-areas-and-data)
+- [Methodology](#-methodology)
 - [Experimental Results](#-experimental-results)
-- [Visualizations](#-visualizations)
-- [Repository Structure](#-repository-structure)
-- [Installation and Usage](#-installation-and-usage)
 - [Technologies](#-technologies)
-- [Limitations and Future Work](#-limitations-and-future-work)
+- [Repository Structure](#-repository-structure)
+- [Getting Started](#-getting-started)
+- [Limitations](#-limitations)
 - [Academic Context](#-academic-context)
-- [References](#-references)
 
-## 🔎 Overview
+---
 
-Accurate agricultural crop classification is essential for crop monitoring, agricultural planning, food security assessment, and environmental management.
+## 🌍 Project Overview
 
-Satellite imagery, particularly multi-temporal Sentinel-2 observations, provides valuable information about vegetation throughout the growing season. Different crop types exhibit distinct spectral and temporal patterns that can be learned using deep learning models.
+Accurate crop classification is important for agricultural monitoring, land-use mapping, and food security. Satellite imagery provides repeated observations of agricultural areas throughout the growing season, allowing crop types to be distinguished through their temporal spectral patterns.
 
-**CROPS** is an academic project investigating pixel-based crop classification using satellite time series and environmental information.
+This project investigates crop classification using **Sentinel-2 time series** and evaluates whether adding environmental information and a different neural network architecture can improve classification performance.
 
-The project is divided into three complementary stages:
+The work is organized into three parts:
 
-1. **Baseline reproduction:** Reimplementing and evaluating MCTNet using Sentinel-2 time-series data.
-2. **Environmental data integration:** Investigating the contribution of climate, soil, and topographic covariates through ablation experiments.
-3. **Model improvement:** Developing and evaluating MS-SE-BiGRU-Attn to improve temporal representation learning.
+1. **MCTNet reproduction:** implementation and evaluation of a baseline model for crop classification using Sentinel-2 time series.
+2. **Environmental covariates:** investigation of the contribution of climate, soil, and topographic information.
+3. **Model improvement:** evaluation of a proposed MS-SE-BiGRU-Attn architecture.
 
-Experiments are conducted on agricultural data from **Arkansas and California, USA**.
+The experiments focus on two study regions in the United States: **Arkansas and California**.
 
-## 🎯 Project Objectives
+## 🎯 Objectives
 
-- Reproduce a published deep learning approach for satellite-based crop mapping.
-- Understand the preprocessing and temporal representation of Sentinel-2 observations.
-- Investigate the effects of missing observations and temporal data coverage.
-- Evaluate the contribution of environmental covariates to crop classification.
-- Design an improved architecture for modeling temporal dependencies.
-- Compare model performance using accuracy, Cohen's Kappa, and F1-score.
-- Analyze experimental results and identify opportunities for future improvements.
+- Reproduce a Deep Learning approach for crop classification from multi-temporal satellite observations.
+- Process Sentinel-2 temporal data for agricultural mapping.
+- Investigate the contribution of environmental covariates.
+- Compare different input configurations and neural network architectures.
+- Evaluate classification performance across two geographic regions.
+- Explore an alternative architecture combining feature recalibration, bidirectional recurrent layers, and attention.
 
-## 🗺️ Study Areas and Dataset
+## 🛰️ Study Areas and Data
 
-### Geographic Coverage
+### Sentinel-2 time series
 
-The experiments focus on two agricultural regions in the United States.
+The project uses Sentinel-2 Level-2A satellite observations to represent the temporal evolution of agricultural surfaces.
 
-| Study area | Region | Samples in the provided CSV |
-|---|---|---:|
-| Arkansas | United States | 10,000 |
-| California | United States | 10,000 |
+The baseline configuration described in the experiments includes:
 
-### Sentinel-2 Time Series
+- **10 spectral bands**
+- **36 temporal slots**
+- Ten-day temporal intervals
+- Observations spanning the agricultural season
 
-The baseline representation consists of:
+The resulting input representation is a multivariate time series for each sampled pixel.
 
-| Property | Description |
+### Reference labels and masking
+
+The experimental workflow uses crop labels from the **2021 Cropland Data Layer (CDL)**, a confidence-based label selection procedure, and an ESA WorldCover mask to help select relevant pixels.
+
+### Study regions
+
+| Region | Objective |
 |---|---|
-| Satellite | Sentinel-2 |
-| Data type | Multi-temporal spectral observations |
-| Temporal dimension | 36 time slots |
-| Spectral dimension | 10 bands |
-| Features per sample | 360 |
-| Classification unit | Agricultural pixel |
-| Reference labels | Cropland Data Layer (CDL) |
+| Arkansas | Evaluate crop classification performance in one agricultural region |
+| California | Evaluate performance and generalization across a different region |
 
-The 36 temporal observations capture vegetation development across the growing season. The spectral information and temporal evolution jointly provide discriminative features for identifying crop types.
+### Environmental covariates
 
-### Environmental Covariates
+The project also investigates additional information beyond satellite spectral observations:
 
-The second part investigates additional environmental information:
+- **Climate:** environmental and climatic variables.
+- **Soil:** soil-related characteristics.
+- **Topography:** terrain-related information.
+- **Combined covariates:** integration of multiple environmental sources.
 
-- **Climate:** Environmental and climatic conditions affecting crop development.
-- **Soil:** Soil properties that may help distinguish agricultural environments.
-- **Topography:** Terrain-related characteristics that provide additional spatial context.
+The goal is to determine whether these additional data sources provide complementary information for crop classification.
 
-These data sources are evaluated individually and jointly with Sentinel-2 observations.
+## 🧠 Methodology
 
-> **Dataset note:** The CSV files contain 10,000 samples per study area and 360 Sentinel-2 features per sample. Their exact label encoding, feature ordering, train/test protocol, and any associated masks should be checked in the notebooks before reusing the data.
+### Part 1 — MCTNet reproduction
 
-## 🧠 Project Methodology
+The first part focuses on reproducing the MCTNet approach for crop classification from Sentinel-2 time series.
 
-The overall workflow is organized into three stages.
+The workflow includes:
 
-```mermaid
-flowchart TD
-    A[Sentinel-2 Time Series] --> B[Preprocessing and EDA]
-    B --> C[MCTNet Baseline]
-    D[Climate Data] --> E[Environmental Covariates]
-    F[Soil Data] --> E
-    G[Topographic Data] --> E
-    E --> H[Covariate Ablation Study]
-    C --> I[Baseline Evaluation]
-    H --> J[Comparative Analysis]
-    I --> K[Model Improvement]
-    J --> K
-    K --> L[MS-SE-BiGRU-Attn]
-    L --> M[Final Evaluation and Discussion]
-```
+1. Preparing the temporal satellite data.
+2. Selecting labeled pixels and applying the masking procedure.
+3. Representing each pixel using its spectral observations over time.
+4. Handling missing temporal observations.
+5. Training the baseline model.
+6. Evaluating performance using accuracy, Cohen's Kappa, and Macro F1-score.
 
-## 🧪 Part 1 — MCTNet Reproduction
+The implementation uses PyTorch. The reproduced model contains approximately **55,059 trainable parameters**, according to the recorded model configuration.
 
-### Objective
+### Part 2 — Environmental covariate integration
 
-Reproduce the methodology of the paper *A Lightweight CNN-Transformer Network for Pixel-Based Crop Mapping Using Time-Series Sentinel-2 Imagery*.
+The second part investigates how environmental information affects classification performance.
 
-The objective is to establish a baseline and assess how well the reproduced architecture classifies agricultural pixels in both study areas.
+Several configurations are compared:
 
-### Main Steps
+- Sentinel-2 only
+- Sentinel-2 + climate
+- Sentinel-2 + soil
+- Sentinel-2 + topography
+- Sentinel-2 + all available covariates
 
-1. **Data exploration:** Examine sample distributions, spectral features, missing observations, and temporal coverage.
-2. **Preprocessing:** Prepare the temporal sequences and align spectral observations with crop labels.
-3. **Model implementation:** Implement the MCTNet architecture in PyTorch.
-4. **Training:** Train and validate the model using the prepared datasets.
-5. **Evaluation:** Calculate classification metrics and analyze the results.
+This ablation study helps identify which combinations of data are most useful in each study region.
 
-### Baseline Architecture
+### Part 3 — Proposed architecture: MS-SE-BiGRU-Attn
 
-MCTNet combines convolutional and Transformer-based components to extract useful features from satellite time series.
+The third part explores a proposed architecture called **MS-SE-BiGRU-Attn**.
 
-The reproduced implementation includes temporal processing, feature fusion blocks, and a classification head.
+Its name reflects the combination of:
 
-The final model checkpoints are available in the `models/` directory.
+- **MS:** multi-source feature integration.
+- **SE:** Squeeze-and-Excitation-style feature recalibration.
+- **BiGRU:** bidirectional gated recurrent units for temporal sequence modeling.
+- **Attention:** emphasis on informative representations.
 
-### Baseline Results
+The objective is to model temporal patterns while leveraging complementary information from different data sources.
 
-| Study area | Overall Accuracy | Cohen's Kappa | Macro F1-score |
+The proposed approach is evaluated against the baseline and under different input configurations.
+
+## 📊 Experimental Results
+
+The results below report the metrics recorded in the project experiments. They should be interpreted in the context of the corresponding experimental configuration.
+
+### 1. Baseline MCTNet reproduction
+
+The first experiment reported the following test results:
+
+| Region | Overall Accuracy | Cohen's Kappa | Macro F1-score |
 |---|---:|---:|---:|
 | Arkansas | 85.69% | 0.7929 | 79.75% |
 | California | 81.61% | 0.7605 | 74.04% |
 
-These results provide the reference point for subsequent experiments.
+These results provide a baseline for evaluating crop classification from Sentinel-2 temporal observations.
 
-## 🌍 Part 2 — Environmental Covariates
+### 2. Baseline versus proposed architecture
 
-### Objective
+The model comparison recorded in Part 3 reports:
 
-Investigate whether environmental information improves crop classification compared with using Sentinel-2 observations alone.
+| Region | MCTNet Accuracy | MS-SE-BiGRU-Attn Accuracy | Difference |
+|---|---:|---:|---:|
+| Arkansas | 84.59% | 89.65% | +5.06 percentage points |
+| California | 81.83% | 83.13% | +1.30 percentage points |
 
-### Experimental Configurations
+The proposed architecture obtains higher reported accuracy in both regions in this comparison. The difference is larger in Arkansas than in California.
 
-Five configurations are evaluated:
+**Experimental note:** the MCTNet accuracy values in this comparison differ from those reported in the initial reproduction. These values come from different recorded experiment tables and should not be treated as a strictly controlled comparison until the data splits, evaluation protocol, and model checkpoints have been verified.
 
-| Configuration | Input features |
-|---|---|
-| S2 Only | Sentinel-2 spectral time series |
-| S2 + Climate | Sentinel-2 and climate variables |
-| S2 + Soil | Sentinel-2 and soil properties |
-| S2 + Topography | Sentinel-2 and topographic variables |
-| S2 + All | Sentinel-2 and all environmental covariates |
+### Model comparison visualization
 
-### Ablation Study
+![Accuracy comparison between MCTNet and MS-SE-BiGRU-Attn](results/accuracy_comparison.png)
 
-The ablation study compares the classification performance obtained with each configuration.
+### 3. Environmental covariate ablation
 
-This makes it possible to investigate:
+The following table summarizes the recorded Overall Accuracy for the five input configurations in Parts 2 and 3.
 
-- Whether environmental variables improve performance over the baseline.
-- Which covariate group provides the greatest benefit.
-- Whether combining different sources produces complementary information.
-- Whether the contribution of environmental data varies between Arkansas and California.
+#### California
 
-### Reported Accuracy Comparisons
-
-The following values are reported for selected configurations in the project experiments.
-
-| Study area | S2 Only | Selected enhanced configuration |
+| Input configuration | Part 2 | Part 3 |
 |---|---:|---:|
-| Arkansas | 74.75% | 80.91% — S2 + Climate |
-| California | 79.84% | 83.67% — S2 + All |
+| Sentinel-2 only | 79.84% | 81.94% |
+| Sentinel-2 + climate | 81.16% | 81.76% |
+| Sentinel-2 + soil | 82.74% | 81.01% |
+| Sentinel-2 + topography | 79.80% | 83.59% |
+| Sentinel-2 + all covariates | 83.67% | 84.84% |
 
-These values correspond to the covariate experiment results and should not be mixed directly with the MCTNet baseline scores without verifying the evaluation protocols.
+#### Arkansas
 
-A complete comparison should include all five configurations for both regions.
-
-## 🚀 Part 3 — Proposed Architecture: MS-SE-BiGRU-Attn
-
-### Motivation
-
-Although the baseline architecture provides a useful starting point, crop classification remains challenging because of temporal variability, missing observations, similarities between crop types, and differences between study areas.
-
-The proposed architecture explores complementary mechanisms for feature extraction and temporal modeling.
-
-### Architecture Components
-
-**MS — Multi-Scale Feature Extraction**
-
-Extracts information at different temporal or feature scales to capture complementary patterns in vegetation development.
-
-**SE — Squeeze-and-Excitation**
-
-Recalibrates feature channels by learning their relative importance, helping the network emphasize informative representations.
-
-**BiGRU — Bidirectional Gated Recurrent Unit**
-
-Models temporal dependencies in both forward and backward directions, allowing the network to use information from earlier and later observations.
-
-**Attention Mechanism**
-
-Assigns different importance to learned representations to emphasize informative temporal features.
-
-### Conceptual Workflow
-
-```mermaid
-flowchart TD
-    A[Sentinel-2 Time Series] --> B[Multi-Scale Feature Extraction]
-    B --> C[Squeeze-and-Excitation]
-    C --> D[Bidirectional GRU]
-    D --> E[Attention Mechanism]
-    E --> F[Classification Head]
-    F --> G[Predicted Crop Class]
-```
-
-This diagram illustrates the conceptual design. The precise order of operations, dimensions, fusion strategy, and implementation details should follow the actual model code.
-
-### Reported Results
-
-| Study area | MCTNet Baseline | Proposed Model |
+| Input configuration | Part 2 | Part 3 |
 |---|---:|---:|
-| Arkansas | 85.69% | 89.65% |
-| California | 81.61% | 83.13% |
+| Sentinel-2 only | 74.75% | 77.21% |
+| Sentinel-2 + climate | 80.91% | 79.19% |
+| Sentinel-2 + soil | 80.75% | 79.58% |
+| Sentinel-2 + topography | 79.46% | 78.84% |
+| Sentinel-2 + all covariates | 78.84% | 81.32% |
 
-The proposed model reports higher accuracy in both regions. A rigorous comparison should additionally verify identical test samples, preprocessing, and evaluation settings.
+### Covariate ablation visualization
 
-## 📊 Experimental Results
+![Environmental covariate ablation study](results/covariates_ablation.png)
 
-### Overall Accuracy Comparison
+### Accuracy difference visualization
 
-The following chart uses the reported baseline and proposed-model accuracies.
-
-```mermaid
-xychart-beta
-    title "Overall Accuracy by Study Area"
-    x-axis ["Arkansas MCTNet", "Arkansas Proposed", "California MCTNet", "California Proposed"]
-    y-axis "Accuracy (%)" 0 --> 100
-    bar [85.69, 89.65, 81.61, 83.13]
-```
-
-### Baseline Evaluation Metrics
-
-| Metric | Arkansas | California |
-|---|---:|---:|
-| Overall Accuracy | 85.69% | 81.61% |
-| Cohen's Kappa | 0.7929 | 0.7605 |
-| Macro F1-score | 79.75% | 74.04% |
-
-**Overall Accuracy (OA):** Measures the proportion of correctly classified samples.
-
-**Cohen's Kappa:** Measures agreement between predictions and reference labels while accounting for chance agreement.
-
-**Macro F1-score:** Calculates the F1-score for each class and averages them equally, making it useful when class distributions are imbalanced.
+![Accuracy difference heatmap across experimental configurations](results/delta_accuracy_heatmap.png)
 
 ### Interpretation
 
-The baseline achieves higher overall accuracy in Arkansas than in California. The difference may reflect variations in data coverage, class distributions, crop characteristics, or other experimental factors; further analysis is needed to identify the causes.
+The recorded results suggest that the contribution of environmental covariates depends on the study region and the experimental configuration.
 
-The proposed architecture reports an increase of **3.96 percentage points** in Arkansas and **1.52 percentage points** in California compared with the reported MCTNet baseline.
+- In Part 2, **Sentinel-2 + climate** obtains the highest recorded accuracy for Arkansas among the tested configurations.
+- In Part 2, **Sentinel-2 + all covariates** obtains the highest recorded accuracy for California.
+- In Part 3, **Sentinel-2 + all covariates** achieves the highest recorded accuracy in both regions.
+- The relative contribution of climate, soil, and topography is not identical across regions.
 
-These differences are descriptive comparisons of the reported results, not proof of statistical significance.
+These findings motivate further investigation of multi-source data integration. Since the two parts contain different experimental results, comparisons across them should be made only after confirming that their evaluation protocols are compatible.
 
-## 🖼️ Visualizations
+## 🛠️ Technologies
 
-The repository can include generated figures from the notebooks to make the experiments easier to understand and reproduce.
-
-Create a `results/` directory and add the corresponding image files.
-
-### 1. Model Performance
-
-![Overall accuracy comparison](results/accuracy_comparison.png)
-
-*Comparison of MCTNet and MS-SE-BiGRU-Attn across Arkansas and California.*
-
-### 2. Environmental Covariate Ablation
-
-![Environmental covariate ablation](results/covariates_ablation.png)
-
-*Accuracy comparison across S2 Only, S2 + Climate, S2 + Soil, S2 + Topography, and S2 + All configurations.*
-
-### 3. Confusion Matrix — Arkansas
-
-![Arkansas confusion matrix](results/confusion_matrix_arkansas.png)
-
-*Confusion matrix showing the distribution of correct and incorrect predictions across crop classes.*
-
-### 4. Confusion Matrix — California
-
-![California confusion matrix](results/confusion_matrix_california.png)
-
-*Confusion matrix showing class-level performance in California.*
-
-### 5. Training Curves
-
-![Training and validation curves](results/training_curves.png)
-
-*Training and validation loss and accuracy, when available, to help analyze convergence and overfitting.*
-
-> **Important:** These Markdown references do not generate the images automatically. The PNG files must exist at the specified paths in the GitHub repository. Remove or rename any reference that does not correspond to a real figure.
+| Category | Technologies |
+|---|---|
+| Programming language | Python |
+| Deep Learning | PyTorch |
+| Data processing | NumPy, Pandas |
+| Visualization | Matplotlib |
+| Satellite data | Sentinel-2 Level-2A |
+| Geospatial and reference data | CDL 2021, ESA WorldCover |
+| Development environment | Jupyter Notebook |
+| Version control | Git, GitHub |
 
 ## 📁 Repository Structure
 
+The repository contains the notebooks and experimental materials used throughout the project. A possible organization for the main files is shown below; adjust the names to match the actual files in the repository.
+
 ```text
 crops/
-├── csv_partie2/
-│   └── Environmental covariate datasets
-├── models/
-│   ├── mctnet_arkansas_final.pth
-│   ├── mctnet_california_final.pth
-│   ├── part2_AR_S2_only.pth
-│   ├── part2_AR_S2_climate.pth
-│   ├── part2_AR_S2_soil.pth
-│   ├── part2_AR_S2_topo.pth
-│   ├── part2_AR_S2_all.pth
-│   ├── part2_CA_S2_only.pth
-│   ├── part2_CA_S2_climate.pth
-│   ├── part2_CA_S2_soil.pth
-│   ├── part2_CA_S2_topo.pth
-│   └── part2_CA_S2_all.pth
-├── results/
-│   ├── accuracy_comparison.png
-│   ├── covariates_ablation.png
-│   ├── confusion_matrix_arkansas.png
-│   ├── confusion_matrix_california.png
-│   └── training_curves.png
-├── ARKANSAS_10000x360.csv
-├── CALIFORNIA_10000x360.csv
+├── README.md
 ├── partie1_enrichi.ipynb
 ├── partie2_visualisations_1.ipynb
 ├── partie3_amelioration.ipynb
-├── sentinel.md
-└── README.md
+└── results/
+    ├── accuracy_comparison.png
+    ├── covariates_ablation.png
+    └── delta_accuracy_heatmap.png
 ```
 
-The `results/` directory and its example image filenames should be added as the corresponding figures become available.
+- `partie1_enrichi.ipynb`: baseline MCTNet reproduction and evaluation.
+- `partie2_visualisations_1.ipynb`: environmental covariate experiments and visualizations.
+- `partie3_amelioration.ipynb`: proposed architecture and additional experiments.
+- `results/`: figures displayed in this README.
 
-## ⚙️ Installation and Usage
+If your notebooks have different names or are stored in subdirectories, update this tree accordingly.
+
+## 🚀 Getting Started
 
 ### Prerequisites
 
-- Python 3.10 or a compatible version supported by the selected dependencies.
-- Git.
-- Jupyter Notebook or JupyterLab.
-- PyTorch installed for the available CPU or CUDA environment.
+- Python 3
+- Jupyter Notebook or JupyterLab
+- PyTorch
+- NumPy
+- Pandas
+- Matplotlib
 
-### 1. Clone the Repository
+A CUDA-compatible GPU can accelerate model training, but availability depends on your PyTorch installation and hardware.
+
+### Installation
+
+Clone the repository:
 
 ```bash
 git clone https://github.com/lynaar/crops.git
 cd crops
 ```
 
-### 2. Create a Virtual Environment
+Create and activate a virtual environment:
 
 ```bash
 python -m venv .venv
 ```
 
-Activate it on Windows:
+On Windows:
 
 ```powershell
-.\.venv\Scripts\Activate.ps1
+.venv\Scripts\Activate.ps1
 ```
 
 On Linux or macOS:
@@ -389,82 +285,51 @@ On Linux or macOS:
 source .venv/bin/activate
 ```
 
-### 3. Install Dependencies
+Install the basic libraries:
 
 ```bash
-pip install numpy pandas matplotlib seaborn scikit-learn jupyter
+pip install numpy pandas matplotlib jupyter
 ```
 
-Install the appropriate PyTorch build separately by following the official instructions: https://pytorch.org/get-started/locally/
+Install a compatible PyTorch version by following the instructions on the official [PyTorch website](https://pytorch.org/get-started/locally/).
 
-Additional packages may be necessary depending on the notebook imports.
-
-### 4. Launch Jupyter
+Launch Jupyter:
 
 ```bash
 jupyter notebook
 ```
 
-Run the notebooks according to their dependencies:
+Open the relevant notebook to inspect the workflow and experiments.
 
-1. `partie1_enrichi.ipynb` — baseline model and data preparation.
-2. `partie2_visualisations_1.ipynb` — environmental covariates and ablation analysis.
-3. `partie3_amelioration.ipynb` — proposed architecture and evaluation.
-
-**Reproducibility note:** Check all data paths, random seeds, package versions, and train/test split definitions before rerunning experiments. Existing `.pth` checkpoints may require the original model definitions and compatible preprocessing.
-
-## 🧰 Technologies
-
-| Category | Tools |
-|---|---|
-| Programming | Python |
-| Deep Learning | PyTorch |
-| Data Processing | NumPy, Pandas |
-| Visualization | Matplotlib, Seaborn |
-| Evaluation | Scikit-learn |
-| Development | Jupyter Notebook, Google Colab |
-| Version Control | Git, GitHub |
-| Remote Sensing | Sentinel-2 time series |
+**Important:** these commands install the basic environment only. Running the experiments also requires the datasets, the correct file paths, and any additional dependencies used by the notebooks. Dataset download and preprocessing commands are not provided here because they depend on the original data access and project setup.
 
 ## ⚠️ Limitations and Future Work
 
-Potential directions for further research include:
+The current experiments provide a basis for exploring multi-source crop classification, but several aspects deserve further investigation:
 
-- Improving temporal coverage and handling missing satellite observations.
-- Investigating class imbalance and minority-class recognition.
-- Performing additional ablation studies on individual architecture components.
-- Evaluating generalization to other regions and growing seasons.
-- Comparing models under identical evaluation protocols.
-- Reporting per-class precision, recall, F1-score, and confusion matrices.
-- Exploring spatially independent validation and uncertainty estimation.
-- Improving experiment reproducibility through saved configurations and random seeds.
+- Verify consistency between the baseline results reported by different experiments.
+- Ensure identical train, validation, and test splits when comparing architectures.
+- Evaluate performance across additional years and geographic regions.
+- Investigate class imbalance and performance on underrepresented crop classes.
+- Study the contribution of each environmental covariate through controlled ablation experiments.
+- Evaluate robustness to missing satellite observations and variations in temporal coverage.
+- Report per-class precision, recall, F1-score, and confusion matrices alongside Overall Accuracy.
+- Repeat experiments with multiple random seeds where feasible.
+
+These steps would help establish more reliable conclusions about the generalization capabilities of the proposed approach.
 
 ## 🎓 Academic Context
 
-**University:** University of Science and Technology Houari Boumediene (USTHB)  
-**Faculty:** Faculty of Computer Science  
-**Program:** Master 1 — Intelligent Computer Systems (M1 SII)  
-**Academic Year:** 2025–2026
+**Institution:** USTHB — Faculty of Computer Science  
+**Program:** Master in Intelligent Computer Systems (SII)  
+**Academic year:** 2025–2026  
 
-**Project title:** *Deep Learning for Crop Classification Using Multi-Source Satellite Data*
+**Project:** Deep Learning for Crop Classification Using Multi-Source Satellite Data
 
-The project was conducted as part of an academic study of deep learning, temporal modeling, remote sensing, and multi-source data integration.
-
-## 📚 References
-
-1. Wang et al. (2024). *A Lightweight CNN-Transformer Network for Pixel-Based Crop Mapping Using Time-Series Sentinel-2 Imagery.* Add the verified DOI or publication URL here.
-2. Sentinel-2 mission documentation: https://dataspace.copernicus.eu/
-3. PyTorch documentation: https://pytorch.org/docs/stable/
-
-## 👩‍💻 Author
-
-**Lyna Arezki**  
-AI and Deep Learning student
-
-GitHub: https://github.com/lynaar
+The project covers baseline reproduction, environmental covariate integration, and the investigation of an alternative neural network architecture for agricultural crop classification.
 
 ---
 
 <p align="center">
-  <em>Exploring the potential of deep learning and multi-source satellite data for agricultural monitoring.</em>
+  <i>Exploring Deep Learning and multi-source Earth observation data for agricultural monitoring.</i>
 </p>
